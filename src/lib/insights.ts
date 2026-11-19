@@ -146,12 +146,13 @@ export function buildFinancialContext(
       title: `Over budget on ${over.map((o) => o.budget.category).join(", ")}`,
       detail: `${formatMoney(-over.reduce((s, o) => s + o.remaining, 0))} beyond your limits this month.`,
     });
-  } else if (near.length) {
+  } else if (near[0]) {
+    const n0 = near[0];
     insights.push({
       id: "budget-near",
       kind: "alert",
-      title: `${near[0].budget.category} budget is ${Math.round(near[0].pct * 100)}% used`,
-      detail: `Only ${formatMoney(near[0].remaining)} left for the rest of the month.`,
+      title: `${n0.budget.category} budget is ${Math.round(n0.pct * 100)}% used`,
+      detail: `Only ${formatMoney(n0.remaining)} left for the rest of the month.`,
     });
   }
 
@@ -180,8 +181,8 @@ export function buildFinancialContext(
   // NEXT: closest goal
   const monthly = averages.savings > 0 ? averages.savings : summary.net;
   const openGoals = goals.filter((g) => goalProgress(g) < 1);
-  if (openGoals.length) {
-    const g = [...openGoals].sort((a, b) => goalProgress(b) - goalProgress(a))[0];
+  const g = [...openGoals].sort((a, b) => goalProgress(b) - goalProgress(a))[0];
+  if (g) {
     const months = monthsToGoal(g.target_amount - g.saved_amount, monthly);
     insights.push({
       id: "goal-next",

@@ -56,7 +56,7 @@ export function monthKey(d: Date | string): string {
 }
 
 export function shiftMonth(key: string, delta: number): string {
-  const [y, m] = key.split("-").map(Number);
+  const [y = 1970, m = 1] = key.split("-").map(Number);
   return monthKey(new Date(y, m - 1 + delta, 1));
 }
 
@@ -150,7 +150,7 @@ export function monthlyAverages(txns: Txn[], currentKey: string, months = 3) {
     }
   }
   const n = used.length;
-  for (const c of Object.keys(byCategory)) byCategory[c] = round2(byCategory[c] / n);
+  for (const c of Object.keys(byCategory)) byCategory[c] = round2((byCategory[c] ?? 0) / n);
   return {
     income: round2(income / n),
     expense: round2(expense / n),

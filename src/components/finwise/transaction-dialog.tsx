@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 
 const schema = z.object({
   type: z.enum(["income", "expense"]),
-  amount: z.number({ invalid_type_error: "Enter an amount" }).positive("Amount must be more than 0").max(99_999_999),
+  amount: z.number({ error: "Enter an amount" }).positive("Amount must be more than 0").max(99_999_999),
   category: z.string().min(1, "Pick a category"),
   merchant: z.string().trim().max(80).nullable(),
   occurred_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pick a date"),

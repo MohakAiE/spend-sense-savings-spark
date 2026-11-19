@@ -58,9 +58,9 @@ export function buildDemoData(today = new Date()) {
 
   for (const offset of [-2, -1, 0]) {
     const key = shiftMonth(current, offset);
-    const [y, m] = key.split("-").map(Number);
+    const [y = 1970, m = 1] = key.split("-").map(Number);
     const daysInMonth = new Date(y, m, 0).getDate();
-    const flavour = MONTH_FLAVOUR[offset];
+    const flavour = MONTH_FLAVOUR[offset] ?? { food: 1, shop: 1 };
     TEMPLATE.forEach((t, i) => {
       // Skip a few rows in older months for variety
       if (offset !== 0 && (i + offset * 3) % 7 === 0 && t.type === "expense") return;

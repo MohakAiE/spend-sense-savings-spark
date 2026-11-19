@@ -30,6 +30,6 @@ export function formatDate(iso: string): string {
 }
 
 export function formatMonthLabel(key: string): string {
-  const [y, m] = key.split("-").map(Number);
+  const [y = 1970, m = 1] = key.split("-").map(Number);
   return new Date(y, m - 1, 1).toLocaleDateString("en-IN", { month: "long", year: "numeric" });
 }

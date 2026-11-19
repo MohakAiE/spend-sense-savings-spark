@@ -36,7 +36,7 @@ export function useTransactionMutations() {
   const qc = useQueryClient();
   const invalidate = () => qc.invalidateQueries({ queryKey: qk.transactions });
   const save = useMutation({
-    mutationFn: async ({ id, values }: { id?: string; values: TxnInput }) => {
+    mutationFn: async ({ id, values }: { id?: string | undefined; values: TxnInput }) => {
       if (id) {
         const { error } = await supabase.from("transactions").update(values).eq("id", id);
         if (error) throw error;

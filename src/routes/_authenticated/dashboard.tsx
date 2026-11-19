@@ -26,6 +26,8 @@ import {
 import { buildFinancialContext } from "@/lib/insights";
 import { formatCompactMoney, formatMoney, formatMonthLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { useWebMCP } from "use-webmcp-tool";
+import { runWebMCPTool } from "@/lib/webmcp-telemetry";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   loader: ({ context }) => ensureFinanceData(context.queryClient),
@@ -85,6 +87,36 @@ function Dashboard() {
   const isEmpty = transactions.length === 0 && budgets.length === 0 && goals.length === 0;
   const s = ctx.summary;
   const expenseDelta = ctx.previous.expense > 0 ? s.expense / ctx.previous.expense - 1 : null;
+
+  useWebMCP({
+    name: "get_dashboard_summary",
+    description:
+      "Read the FinWise dashboard currently shown: this month's income, spending, savings, health score, top categories, budgets, goals and insights (INR).",
+    annotations: { readOnlyHint: true, untrustedContentHint: true },
+    execute: () =>
+      runWebMCPTool("get_dashboard_summary", () => {
+        if (isEmpty) return "The dashboard is empty: no transactions, budgets or goals yet.";
+        const lines = [
+          `${formatMonthLabel(current)}: income ${formatMoney(s.income)}, spent ${formatMoney(s.expense)}, saved ${formatMoney(s.income - s.expense)}.`,
+          `Health score ${health.overall}/100 (${band.label}).`,
+          `Top categories: ${ctx.categories.slice(0, 5).map((c) => `${c.category} ${formatMoney(c.amount)}`).join(", ") || "none"}.`,
+          `Budgets: ${ctx.budgets.map((b) => `${b.budget.category} ${formatMoney(b.spent)}/${formatMoney(b.budget.limit_amount)} (${b.status})`).join(", ") || "none this month"}.`,
+          `Goals: ${goals.map((g) => `${g.name} ${Math.round(goalProgress(g) * 100)}%`).join(", ") || "none"}.`,
+          ...ctx.insights.slice(0, 4).map((i) => `Insight: ${i.title} — ${i.detail}`),
+        ];
+        return lines.join("\n");
+      }),
+  });
+
+  useWebMCP({
+    name: "open_add_transaction",
+    description: "Open the Add transaction form on the dashboard so the user can review and save a new income or expense.",
+    execute: () =>
+      runWebMCPTool("open_add_transaction", () => {
+        setAddOpen(true);
+        return "Opened the Add transaction form for the user to fill in and save.";
+      }),
+  });
 
   return (
     <AppShell>

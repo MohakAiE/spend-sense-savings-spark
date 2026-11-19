@@ -10,11 +10,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Logo } from "@/components/finwise/logo";
+import { oauthReturnPath } from "@/lib/oauth-return-path";
 
 const searchSchema = z.object({ redirect: z.string().optional() });
 
 function safeRedirect(target?: string) {
-  return target && target.startsWith("/") && !target.startsWith("//") ? target : "/dashboard";
+  const path = oauthReturnPath(target);
+  return path === "/" ? "/dashboard" : path;
+}
+
+/** Absolute /auth URL that carries the validated return path through email links and Google sign-in. */
+function authReturnUrl(target?: string) {
+  const url = new URL("/auth", window.location.origin);
+  const path = oauthReturnPath(target);
+  if (path !== "/") url.searchParams.set("redirect", path);
+  return url.href;
 }
 
 export const Route = createFileRoute("/auth")({
@@ -78,7 +88,7 @@ function AuthPage() {
           email: parsed.data.email,
           password: parsed.data.password,
           options: {
-            emailRedirectTo: window.location.origin + "/auth",
+            emailRedirectTo: authReturnUrl(search.redirect),
             data: { display_name: parsed.data.name },
           },
         });
@@ -105,7 +115,7 @@ function AuthPage() {
 
   async function onGoogle() {
     setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/auth" });
+    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: authReturnUrl(search.redirect) });
     if (result.error) {
       toast.error(result.error instanceof Error ? result.error.message : "Google sign-in failed");
       setBusy(false);
